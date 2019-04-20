@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="JAVA_MODULE" version="4">
   <component name="EclipseModuleManager">
-    <libelement value="file://C:\Users\Asus\Desktop\ex3\RT_Unimplemented\res\gson-2.8.2" />
+    <libelement value="file://C:\Users\Asus\Desktop\ex3_graphics\RT_Unimplemented\res\gson-2.8.2" />
     <src_description expected_position="0">
       <src_folder value="file://$MODULE_DIR$/src" expected_position="0" />
     </src_description>

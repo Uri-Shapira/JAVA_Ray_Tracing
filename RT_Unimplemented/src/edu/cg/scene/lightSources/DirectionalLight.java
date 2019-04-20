@@ -24,8 +24,6 @@ public class DirectionalLight extends Light {
 	public DirectionalLight initIntensity(Vec intensity) {
 		return (DirectionalLight)super.initIntensity(intensity);
 	}
-	
-	//TODO: add some methods
 
 	/**
 	 * Constructs a ray originated from the given point to the light.
@@ -33,7 +31,7 @@ public class DirectionalLight extends Light {
 	 * @return a ray origniated from 'fromPoint' to the light source.
 	 */
 	public  Ray rayToLight(Point fromPoint){
-		return null;
+		return new Ray(fromPoint, this.direction.mult(-1.0));
 	}
 
 
@@ -45,7 +43,11 @@ public class DirectionalLight extends Light {
 	 * @return true if the ray is occluded by the surface..
 	 */
 	public boolean isOccludedBy(Surface surface, Ray rayToLight){
-		return false;
+		boolean isOccluded = false;
+		if (surface.intersect(rayToLight) != null) {
+			isOccluded = true;
+		}
+		return isOccluded;
 	}
 
 	/**
@@ -55,6 +57,6 @@ public class DirectionalLight extends Light {
 	 * @return A vector representing the light intensity (the r,g and b channels).
 	 */
 	public Vec intensity(Point hittingPoint, Ray rayToLight){
-		return null;
+		return this.intensity;
 	}
 }

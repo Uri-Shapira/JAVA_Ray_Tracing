@@ -7,15 +7,15 @@ import edu.cg.algebra.Ray;
 
 
 public class PinholeCamera {
-	Point cameraPosition;
-	Vec rightVec;
-	Vec towardsVec;
-	Vec upVec;
-	double distanceToPlain;
-	double resolutionX;
-	double resolutionY;
-	double viewPlainWidth;
-	Point imageMiddle;
+	public Point cameraPosition;
+	public Vec rightVec;
+	public Vec towardsVec;
+	public Vec upVec;
+	public double distanceToPlain;
+	public double resolutionX;
+	public double resolutionY;
+	public double viewPlainWidth;
+	public Point imageMiddle;
 
 
 	/**

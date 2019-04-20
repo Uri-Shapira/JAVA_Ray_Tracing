@@ -11,12 +11,15 @@ import java.util.concurrent.Future;
 
 import edu.cg.Logger;
 import edu.cg.UnimplementedMethodException;
+import edu.cg.algebra.Ops;
 import edu.cg.algebra.Point;
 import edu.cg.algebra.Ray;
+import edu.cg.algebra.Hit;
 import edu.cg.algebra.Vec;
 import edu.cg.scene.camera.PinholeCamera;
 import edu.cg.scene.lightSources.Light;
 import edu.cg.scene.objects.Surface;
+import edu.cg.scene.objects.Intersectable;
 
 public class Scene {
 	private String name = "scene";
@@ -35,6 +38,9 @@ public class Scene {
 	//MARK: initializers
 	public Scene initCamera(Point eyePoistion, Vec towardsVec, Vec upVec,  double distanceToPlain) {
 		this.camera = new PinholeCamera(eyePoistion, towardsVec, upVec,  distanceToPlain);
+		System.out.println("camera position :" + this.camera.cameraPosition);
+		System.out.println("image middle :" + this.camera.imageMiddle);
+		System.out.println("transfer point 3,3 :" + this.camera.transform(0,0));
 		return this;
 	}
 	
@@ -124,8 +130,7 @@ public class Scene {
 		//TODO: initialize your additional field here.
 		//      You can also change the method signature if needed.
 	}
-	
-	
+
 	public BufferedImage render(int imgWidth, int imgHeight, double viewPlainWidth,Logger logger)
 			throws InterruptedException, ExecutionException {
 		// TODO: Please notice the following comment.
@@ -146,7 +151,7 @@ public class Scene {
 		this.logger.log("Starting to shoot " +
 			(imgHeight*imgWidth*antiAliasingFactor*antiAliasingFactor) +
 			" rays over " + name);
-		
+
 		for(int y = 0; y < imgHeight; ++y)
 			for(int x = 0; x < imgWidth; ++x)
 				futures[y][x] = calcColor(x, y);
@@ -182,8 +187,36 @@ public class Scene {
 	}
 	
 	private Vec calcColor(Ray ray, int recusionLevel) {
-		// TODO: Implement this method.
-		//       This is the recursive method in RayTracing.
+
 		throw new UnimplementedMethodException("calcColor");
+	}
+
+	private Hit closestHit(Ray ray){
+		double closestT = Ops.infinity;
+		Hit closestHit = null;
+		for (Intersectable surface : surfaces){
+			Hit hit = surface.intersect(ray);
+			if (hit != null) {
+				if (hit.t() < closestT){
+					closestHit = hit;
+					closestT = hit.t();
+				}
+			}
+		}
+		return closestHit;
+	}
+
+	private Vec illumination(Hit hit){
+		for (Light lightSource : lightSources){
+			//Shoot a ray from the piint of closest intersection to the light
+			// Find if occluded and what is the effect on the color bla bla bla
+		}
+		return null;
+	}
+
+	private Vec rayCast(Ray ray) {
+		Hit hit = closestHit(ray);
+		// Vec color = illumination(hit)
+		return null;
 	}
 }

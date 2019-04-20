@@ -3,6 +3,7 @@ package edu.cg.scene.lightSources;
 import edu.cg.algebra.Point;
 import edu.cg.algebra.Ray;
 import edu.cg.algebra.Vec;
+import edu.cg.algebra.Hit;
 import edu.cg.scene.objects.Surface;
 
 public class PointLight extends Light {
@@ -43,14 +44,13 @@ public class PointLight extends Light {
 		return this;
 	}
 
-	//TODO: add some methods
 	/**
 	 * Constructs a ray originated from the given point to the light.
 	 * @param fromPoint - The initial point of the ray
 	 * @return a ray origniated from 'fromPoint' to the light source.
 	 */
 	public Ray rayToLight(Point fromPoint){
-		return null;
+		return new Ray(fromPoint, this.position);
 	}
 
 
@@ -62,7 +62,13 @@ public class PointLight extends Light {
 	 * @return true if the ray is occluded by the surface..
 	 */
 	public boolean isOccludedBy(Surface surface, Ray rayToLight){
-		return false;
+		boolean isOccluded = false;
+		Hit intersectionPoint = surface.intersect(rayToLight);
+		if (intersectionPoint != null){
+
+		}
+
+		return isOccluded;
 	}
 
 	/**

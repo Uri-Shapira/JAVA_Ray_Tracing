@@ -48,11 +48,11 @@ public class Plain extends Shape {
 		Vec abc = new Vec(a, b, c);
 		return abc.dot(p.toVec()) + d;
 	}
-	
+
 	@Override
 	public Hit intersect(Ray ray) {
 		Vec abc = new Vec(a, b, c);
-		
+
 		double t = -substitute(ray.source()) / ray.direction().dot(abc);
 		return t > Ops.epsilon & t < Ops.infinity ? new Hit(t, normal(ray)) : null;
 	}

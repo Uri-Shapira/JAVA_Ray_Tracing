@@ -49,10 +49,9 @@ public class PointLight extends Light {
 	 * @param fromPoint - The initial point of the ray
 	 * @return a ray origniated from 'fromPoint' to the light source.
 	 */
-	public Ray rayToLight(Point fromPoint){
+	public Ray rayToLight(Point fromPoint) {
 		return new Ray(fromPoint, this.position);
 	}
-
 
 	/**
 	 * Checks if the given surface occludes the light-source. The surface occludes the light source
@@ -63,11 +62,13 @@ public class PointLight extends Light {
 	 */
 	public boolean isOccludedBy(Surface surface, Ray rayToLight){
 		boolean isOccluded = false;
-		Hit intersectionPoint = surface.intersect(rayToLight);
-		if (intersectionPoint != null){
-
+		Hit hitToSurface = surface.intersect(rayToLight);
+		if (hitToSurface != null){
+			Point surfaceHitPoint = rayToLight.getHittingPoint(hitToSurface);
+			if(rayToLight.source().distSqr(this.position) > rayToLight.source().distSqr(surfaceHitPoint)){
+				isOccluded = true;
+			}
 		}
-
 		return isOccluded;
 	}
 
@@ -78,6 +79,8 @@ public class PointLight extends Light {
 	 * @return A vector representing the light intensity (the r,g and b channels).
 	 */
 	public Vec intensity(Point hittingPoint, Ray rayToLight){
-		return null;
+		double distance = hittingPoint.dist(this.position);
+		double denominator = this.kc + this.kl* distance + this.kq * (distance * distance);
+		return this.intensity.mult(1.0D / denominator);
 	}
 }

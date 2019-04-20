@@ -25,12 +25,12 @@ public class Hit implements Comparable<Hit> {
 	public void setSurface(Surface surface) {
 		this.surface = surface;
 	}
-	
+
 	//checks if the intersection was occurred inside the surface (for refraction)
 	public boolean isWithinTheSurface() {
 		return isWithin;
 	}
-	
+
 	public Hit setIsWithin(boolean isWithin) {
 		this.isWithin = isWithin;
 		return this;

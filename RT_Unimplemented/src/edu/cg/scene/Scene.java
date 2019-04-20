@@ -187,7 +187,12 @@ public class Scene {
 	}
 	
 	private Vec calcColor(Ray ray, int recusionLevel) {
-
+		// get hit
+		Hit closest_hit = closestHit(ray);
+		// get illumination
+		Vec color = illumination(closest_hit);
+		// get color
+		// return color
 		throw new UnimplementedMethodException("calcColor");
 	}
 
@@ -207,8 +212,14 @@ public class Scene {
 	}
 
 	private Vec illumination(Hit hit){
+		Point hitPoint = null;
+		Vec intensity = new Vec(0,0,0);
 		for (Light lightSource : lightSources){
-			//Shoot a ray from the piint of closest intersection to the light
+			Ray rayToLight = lightSource.rayToLight(hitPoint);
+			for (Intersectable surface : surfaces) {
+
+			}
+			//Shoot a ray from the point of closest intersection to the light
 			// Find if occluded and what is the effect on the color bla bla bla
 		}
 		return null;

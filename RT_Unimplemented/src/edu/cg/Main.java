@@ -2,6 +2,7 @@ package edu.cg;
 
 import java.io.File;
 
+import edu.cg.algebra.Vec;
 import edu.cg.menu.MenuWindow;
 
 public class Main {

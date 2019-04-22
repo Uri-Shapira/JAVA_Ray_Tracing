@@ -194,6 +194,7 @@ public class Scene {
 //		}
 		Hit closest_hit = closestHit(ray);
 		if(closest_hit != null){
+			Vec colorVector = new Vec(0.0);
 			Point startingPoint = ray.source();
 			Point hitPoint = ray.getHittingPoint(closest_hit);
 			Surface surface_hit = closest_hit.getSurface();
@@ -201,21 +202,18 @@ public class Scene {
 			Vec Kd = surface_hit.Kd();
 			Vec Ks = surface_hit.Ks();
 			Vec ambient = Ka.mult(this.ambient);
-//			System.out.println("ambient" + ambient);
-			Vec colorVector = ambient;
+			colorVector = colorVector.add(ambient);
 			for (Light lightSource : this.lightSources){
 				Ray rayToLight = lightSource.rayToLight(hitPoint);
 				if(!lightIsOccluded(rayToLight, lightSource)){
 					Vec I_L = lightSource.intensity(hitPoint, rayToLight);
 					Vec diffuse = Kd.mult(closest_hit.getNormalToSurface().dot(rayToLight.direction())).mult(I_L);
-					colorVector.add(diffuse);
-					System.out.println("diffuse" + diffuse);
+					colorVector = colorVector.add(diffuse);
 					Vec R_hat = Ops.reflect(rayToLight.direction(),closest_hit.getNormalToSurface()).normalize();
 					Vec V = hitPoint.sub(startingPoint).normalize();
 					double cosine_alpha = V.dot(R_hat);
 					Vec specular = Ks.mult(Math.pow(cosine_alpha, surface_hit.shininess())).mult(I_L);
-//					System.out.println("specular: " + specular);
-					colorVector.add(specular);
+					colorVector = colorVector.add(specular);
 				}
 			}
 			return colorVector;

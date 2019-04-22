@@ -80,7 +80,7 @@ public class PointLight extends Light {
 	 */
 	public Vec intensity(Point hittingPoint, Ray rayToLight){
 		double distance = hittingPoint.dist(this.position);
-		double denominator = this.kc + this.kl* distance + this.kq * (distance * distance);
-		return this.intensity.mult(1.0D / denominator);
+		double denominator = this.kc + this.kl* distance + this.kq * (Math.pow(distance,2));
+		return this.intensity.mult(1.0 / denominator);
 	}
 }

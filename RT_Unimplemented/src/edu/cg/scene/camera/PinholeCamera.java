@@ -59,10 +59,9 @@ public class PinholeCamera {
 	 */
 	public Point transform(int x, int y) {
 		double pixelWidth = this.viewPlainWidth / this.resolutionX;
-		// Why does height not matter??????
 		double pixelHeight = this.viewPlainWidth / this.resolutionY;
-		Vec right = this.rightVec.mult((x - (this.resolutionX/2)) * pixelWidth);
-		Vec up = this.upVec.mult(-1.0 * (y - (this.resolutionY/2)) * pixelHeight);
+		Vec right = this.rightVec.mult((x - (int)(this.resolutionX/2.0)) * pixelWidth);
+		Vec up = this.upVec.mult(-1.0 * (y - (int)(this.resolutionY/2.0)) * pixelHeight);
 		Point transformedPoint = imageMiddle.add(right).add(up);
 		return transformedPoint;
 	}

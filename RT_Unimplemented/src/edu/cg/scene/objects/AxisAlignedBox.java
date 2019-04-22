@@ -66,6 +66,5 @@ public class AxisAlignedBox extends Shape {
 		// See documentation in Intersectable.java base class. 
 		throw new UnimplementedMethodException("intersect");
 	}
-
 	
 }

@@ -38,9 +38,6 @@ public class Scene {
 	//MARK: initializers
 	public Scene initCamera(Point eyePoistion, Vec towardsVec, Vec upVec,  double distanceToPlain) {
 		this.camera = new PinholeCamera(eyePoistion, towardsVec, upVec,  distanceToPlain);
-		System.out.println("camera position :" + this.camera.cameraPosition);
-		System.out.println("image middle :" + this.camera.imageMiddle);
-		System.out.println("transfer point 3,3 :" + this.camera.transform(0,0));
 		return this;
 	}
 	
@@ -186,14 +183,36 @@ public class Scene {
 		});
 	}
 	
-	private Vec calcColor(Ray ray, int recusionLevel) {
-		// get hit
+	private Vec calcColor(Ray ray, int recursionLevel) {
 		Hit closest_hit = closestHit(ray);
-		// get illumination
-		Vec color = illumination(closest_hit);
-		// get color
-		// return color
-		throw new UnimplementedMethodException("calcColor");
+		if(closest_hit != null){
+			Point hitPoint = ray.getHittingPoint(closest_hit);
+			Surface surface_hit = closest_hit.getSurface();
+			Vec Ka = surface_hit.Ka();
+			Vec Kd = surface_hit.Kd();
+			Vec Ks = surface_hit.Ks();
+			Vec colorVector = Ka.mult(this.ambient);
+//			System.out.println("ambient" + colorVector);
+			for (Light lightSource : this.lightSources){
+				Ray rayToLight = lightSource.rayToLight(hitPoint);
+				if(!isOccluded(rayToLight, lightSource, surface_hit)){
+					Vec I_L = lightSource.intensity(hitPoint, rayToLight);
+					Vec diffuse = Kd.mult(closest_hit.getNormalToSurface().dot(rayToLight.direction())).mult(I_L);
+					colorVector.add(diffuse);
+//					System.out.println("diffuse" + diffuse);
+					Vec R_hat = Ops.reflect(rayToLight.direction(),closest_hit.getNormalToSurface()).normalize();
+					Vec V = hitPoint.sub(camera.cameraPosition).normalize();
+					double cosine_alpha= V.dot(R_hat);
+					Vec specular = Ks.mult(Math.pow(cosine_alpha, surface_hit.shininess())).mult(I_L);
+//					System.out.println("specular: " + specular);
+					colorVector.add(specular);
+				}
+			}
+			return colorVector;
+		}
+		else {
+			return this.backgroundColor;
+		}
 	}
 
 	private Hit closestHit(Ray ray){
@@ -202,7 +221,7 @@ public class Scene {
 		for (Intersectable surface : surfaces){
 			Hit hit = surface.intersect(ray);
 			if (hit != null) {
-				if (hit.t() < closestT){
+				if (hit.t() < closestT && hit.t() > 0){
 					closestHit = hit;
 					closestT = hit.t();
 				}
@@ -211,23 +230,14 @@ public class Scene {
 		return closestHit;
 	}
 
-	private Vec illumination(Hit hit){
-		Point hitPoint = null;
-		Vec intensity = new Vec(0,0,0);
-		for (Light lightSource : lightSources){
-			Ray rayToLight = lightSource.rayToLight(hitPoint);
-			for (Intersectable surface : surfaces) {
-
+	private boolean isOccluded(Ray rayToLight, Light light, Surface hit_surface){
+		for(Surface surface : surfaces){
+			if(surface != hit_surface){
+				if (light.isOccludedBy(surface, rayToLight)){
+					return true;
+				}
 			}
-			//Shoot a ray from the point of closest intersection to the light
-			// Find if occluded and what is the effect on the color bla bla bla
 		}
-		return null;
-	}
-
-	private Vec rayCast(Ray ray) {
-		Hit hit = closestHit(ray);
-		// Vec color = illumination(hit)
-		return null;
+		return false;
 	}
 }

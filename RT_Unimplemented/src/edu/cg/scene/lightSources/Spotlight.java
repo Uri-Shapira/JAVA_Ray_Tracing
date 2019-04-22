@@ -61,11 +61,10 @@ public class Spotlight extends PointLight {
 	 */
 	public Vec intensity(Point hittingPoint, Ray rayToLight)  {
 		Vec D = this.direction.normalize();
-		Vec V = rayToLight.direction().neg();
-		double cosGamma = D.dot(V);
-		if (cosGamma < Ops.epsilon) {
+		Vec V = rayToLight.direction().neg().normalize();
+		if (V.dot(D) < Ops.epsilon) {
 			return new Vec(0.0, 0.0, 0.0);
 		}
-		return super.intensity(hittingPoint, rayToLight).mult(cosGamma);
+		return super.intensity(hittingPoint, rayToLight).mult(V.dot(D));
 	}
 }

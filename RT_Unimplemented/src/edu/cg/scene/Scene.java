@@ -184,25 +184,35 @@ public class Scene {
 	}
 	
 	private Vec calcColor(Ray ray, int recursionLevel) {
+//		if(recursionLevel <= maxRecursionLevel){
+			// calculate colorVector regularly as done below
+			// If reflection intensity != 0 ....
+				// starting point = hit point of the ray to the surface
+				// Ray ray = new Ray(starting point, direction of reflect direction / retract direction
+//				// return colorVector.add(I_R.mult(calcColor(new ray, ++recursionLevel)))
+			// else return colorVector
+//		}
 		Hit closest_hit = closestHit(ray);
 		if(closest_hit != null){
+			Point startingPoint = ray.source();
 			Point hitPoint = ray.getHittingPoint(closest_hit);
 			Surface surface_hit = closest_hit.getSurface();
 			Vec Ka = surface_hit.Ka();
 			Vec Kd = surface_hit.Kd();
 			Vec Ks = surface_hit.Ks();
-			Vec colorVector = Ka.mult(this.ambient);
-//			System.out.println("ambient" + colorVector);
+			Vec ambient = Ka.mult(this.ambient);
+//			System.out.println("ambient" + ambient);
+			Vec colorVector = ambient;
 			for (Light lightSource : this.lightSources){
 				Ray rayToLight = lightSource.rayToLight(hitPoint);
-				if(!isOccluded(rayToLight, lightSource, surface_hit)){
+				if(!lightIsOccluded(rayToLight, lightSource)){
 					Vec I_L = lightSource.intensity(hitPoint, rayToLight);
 					Vec diffuse = Kd.mult(closest_hit.getNormalToSurface().dot(rayToLight.direction())).mult(I_L);
 					colorVector.add(diffuse);
-//					System.out.println("diffuse" + diffuse);
+					System.out.println("diffuse" + diffuse);
 					Vec R_hat = Ops.reflect(rayToLight.direction(),closest_hit.getNormalToSurface()).normalize();
-					Vec V = hitPoint.sub(camera.cameraPosition).normalize();
-					double cosine_alpha= V.dot(R_hat);
+					Vec V = hitPoint.sub(startingPoint).normalize();
+					double cosine_alpha = V.dot(R_hat);
 					Vec specular = Ks.mult(Math.pow(cosine_alpha, surface_hit.shininess())).mult(I_L);
 //					System.out.println("specular: " + specular);
 					colorVector.add(specular);
@@ -212,6 +222,7 @@ public class Scene {
 		}
 		else {
 			return this.backgroundColor;
+
 		}
 	}
 
@@ -221,7 +232,7 @@ public class Scene {
 		for (Intersectable surface : surfaces){
 			Hit hit = surface.intersect(ray);
 			if (hit != null) {
-				if (hit.t() < closestT && hit.t() > 0){
+				if (hit.t() < closestT ){ // Maybe need to add here && hit.t() > 0
 					closestHit = hit;
 					closestT = hit.t();
 				}
@@ -230,14 +241,14 @@ public class Scene {
 		return closestHit;
 	}
 
-	private boolean isOccluded(Ray rayToLight, Light light, Surface hit_surface){
+	private boolean lightIsOccluded(Ray rayToLight, Light light){
 		for(Surface surface : surfaces){
-			if(surface != hit_surface){
-				if (light.isOccludedBy(surface, rayToLight)){
-					return true;
-				}
+			//if(surface != hit_surface) - not sure if this is necessary????
+			if (light.isOccludedBy(surface, rayToLight)){
+				return true;
 			}
 		}
 		return false;
 	}
+
 }

@@ -173,13 +173,33 @@ public class Scene {
 	
 	private Future<Color> calcColor(int x, int y) {
 		return executor.submit(() -> {
-			// TODO: You need to re-implement this method if you want to handle
-			//       super-sampling. You're also free to change the given implementation as you like.
-			Point centerPoint = camera.transform(x, y);
-			Ray ray = new Ray(camera.getCameraPosition(), centerPoint);
-			Vec color = calcColor(ray, 0);
-			return color.toColor();
+			if(antiAliasingFactor > 1){
+				Vec totalColor = new Vec(0.0);
+				for(int i = 0; i < antiAliasingFactor; i++){
+					for(int j = 0; j < antiAliasingFactor; j++){
+						Point pixelPortion = anti_aliasing_transform(x,y,i,j);
+						Ray ray = new Ray(camera.getCameraPosition(), pixelPortion);
+						totalColor = totalColor.add(calcColor(ray, 0));
+					}
+				}
+				Vec averagedColor = totalColor.mult(1.0/Math.pow(antiAliasingFactor,2));
+				return averagedColor.toColor();
+			}
+			else{
+				Point centerPoint = camera.transform(x, y);
+				Ray ray = new Ray(camera.getCameraPosition(), centerPoint);
+				Vec color = calcColor(ray, 0);
+				return color.toColor();
+			}
 		});
+	}
+
+	private Point anti_aliasing_transform(int x, int y, int i, int j){
+		double pixelWidth = camera.viewPlainWidth / camera.resolutionX;
+		double pixelHeight = camera.viewPlainWidth / camera.resolutionY;
+		Vec right = camera.rightVec.mult((x - (int)(camera.resolutionX/2.0) + (double)i/antiAliasingFactor) * pixelWidth);
+		Vec up = camera.upVec.mult(-1.0 * (y - (int)(camera.resolutionY/2.0) + (double)j/antiAliasingFactor) * pixelHeight);
+		return camera.imageMiddle.add(right).add(up);
 	}
 
 	private Vec calcColor(Ray ray, int recursionLevel) {
@@ -198,26 +218,32 @@ public class Scene {
 				}
 			}
 			recursionLevel++;
-			if (recursionLevel < maxRecursionLevel){
-				if(renderReflections){
-					double I_Ref = surface_hit.reflectionIntensity();
-					Vec reflected = Ops.reflect(ray.direction(), closest_hit.getNormalToSurface());
-					Ray reflectionRay = new Ray(ray.getHittingPoint(closest_hit), reflected.normalize());
-					colorVector = colorVector.add(calcColor(reflectionRay, recursionLevel).mult(I_Ref));
-				}
-				if(renderRefarctions){
-					double I_Ret = surface_hit.refractionIntensity();
-					double n1 = surface_hit.n1(closest_hit);
-					double n2 = surface_hit.n2(closest_hit);
-					Vec refracted = Ops.refract(ray.direction(), closest_hit.getNormalToSurface(), n1, n2);
-					Ray refractedRay = new Ray(ray.getHittingPoint(closest_hit), refracted.normalize());
-					colorVector = colorVector.add(calcColor(refractedRay, recursionLevel).mult(I_Ret));
-				}
+			if (recursionLevel > maxRecursionLevel) {
+				return colorVector;
+			}
+			if(renderReflections){
+				double Kr = surface_hit.reflectionIntensity();
+				Vec reflected = Ops.reflect(ray.direction(), closest_hit.getNormalToSurface());
+				Ray reflectionRay = new Ray(ray.getHittingPoint(closest_hit), reflected.normalize());
+				colorVector = colorVector.add(calcColor(reflectionRay, recursionLevel).mult(Kr));
+			}
+			if(renderRefarctions){
+				double Kt = surface_hit.refractionIntensity();
+				double n1 = surface_hit.n1(closest_hit);
+				double n2 = surface_hit.n2(closest_hit);
+				Vec refracted = Ops.refract(ray.direction(), closest_hit.getNormalToSurface(), n1, n2);
+				Ray refractedRay = new Ray(ray.getHittingPoint(closest_hit), refracted.normalize());
+				colorVector = colorVector.add(calcColor(refractedRay, recursionLevel).mult(Kt));
 			}
 			return colorVector;
 		}
 		return this.backgroundColor;
 	}
+
+	/**
+	 * TODO:
+	 * Add methods for calcReflectedRay and calcRefractedRay
+	 */
 
 	private Vec getDiffuse(Vec Kd, Hit hit, Light lightSource, Ray ray){
 		Point hitPoint = ray.getHittingPoint(hit);

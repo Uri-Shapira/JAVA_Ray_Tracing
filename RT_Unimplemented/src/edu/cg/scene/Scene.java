@@ -182,46 +182,66 @@ public class Scene {
 			return color.toColor();
 		});
 	}
-	
-	private Vec calcColor(Ray ray, int recursionLevel) {
-//		if(recursionLevel <= maxRecursionLevel){
-			// calculate colorVector regularly as done below
-			// If reflection intensity != 0 ....
+
+
+	//		if(recursionLevel <= maxRecursionLevel){
+				// calculate colorVector regularly as done below
+				// If reflection intensity != 0 ....
 				// starting point = hit point of the ray to the surface
 				// Ray ray = new Ray(starting point, direction of reflect direction / retract direction
-//				// return colorVector.add(I_R.mult(calcColor(new ray, ++recursionLevel)))
-			// else return colorVector
+			//				// return colorVector.add(I_R.mult(calcColor(new ray, ++recursionLevel)))
+		// else return colorVector
 //		}
+	private Vec calcColor(Ray ray, int recursionLevel) {
 		Hit closest_hit = closestHit(ray);
 		if(closest_hit != null){
-			Vec colorVector = new Vec(0.0);
-			Point startingPoint = ray.source();
-			Point hitPoint = ray.getHittingPoint(closest_hit);
 			Surface surface_hit = closest_hit.getSurface();
 			Vec Ka = surface_hit.Ka();
 			Vec Kd = surface_hit.Kd();
 			Vec Ks = surface_hit.Ks();
-			Vec ambient = Ka.mult(this.ambient);
-			colorVector = colorVector.add(ambient);
+			Vec colorVector = Ka.mult(this.ambient);
 			for (Light lightSource : this.lightSources){
-				Ray rayToLight = lightSource.rayToLight(hitPoint);
-				if(!lightIsOccluded(rayToLight, lightSource)){
-					Vec I_L = lightSource.intensity(hitPoint, rayToLight);
-					Vec diffuse = Kd.mult(closest_hit.getNormalToSurface().dot(rayToLight.direction())).mult(I_L);
-					colorVector = colorVector.add(diffuse);
-					Vec R_hat = Ops.reflect(rayToLight.direction(),closest_hit.getNormalToSurface()).normalize();
-					Vec V = hitPoint.sub(startingPoint).normalize();
-					double cosine_alpha = V.dot(R_hat);
-					Vec specular = Ks.mult(Math.pow(cosine_alpha, surface_hit.shininess())).mult(I_L);
-					colorVector = colorVector.add(specular);
+				if(!lightIsOccluded(lightSource.rayToLight(ray.getHittingPoint(closest_hit)), lightSource)){
+					Vec diffuse = getDiffuse(Kd, closest_hit, lightSource, ray);
+					Vec specular = getSpecular(Ks, closest_hit, lightSource, ray, surface_hit.shininess());
+					colorVector = colorVector.add(diffuse).add(specular);
+				}
+			}
+			recursionLevel++;
+			if (recursionLevel < maxRecursionLevel){
+				if(renderReflections){
+					double I_Ref = surface_hit.reflectionIntensity();
+					Vec reflected = Ops.reflect(ray.direction(), closest_hit.getNormalToSurface());
+					Ray reflectionRay = new Ray(ray.getHittingPoint(closest_hit), reflected.normalize());
+					colorVector = colorVector.add(calcColor(reflectionRay, recursionLevel).mult(I_Ref));
+				}
+				if(renderRefarctions){
+					// add here code for calc vector for refractions
 				}
 			}
 			return colorVector;
 		}
-		else {
-			return this.backgroundColor;
+		return this.backgroundColor;
+	}
 
-		}
+	private Vec getDiffuse(Vec Kd, Hit hit, Light lightSource, Ray ray){
+		Point hitPoint = ray.getHittingPoint(hit);
+		Ray rayToLight = lightSource.rayToLight(hitPoint);
+		Vec intensity = lightSource.intensity(hitPoint, rayToLight);
+		Vec normalToSurface = hit.getNormalToSurface();
+		Vec diffuse = Kd.mult(intensity).mult(normalToSurface.dot(rayToLight.direction()));
+		return diffuse;
+	}
+
+	private Vec getSpecular(Vec Ks, Hit hit, Light lightSource, Ray ray, int n){
+		Point hitPoint = ray.getHittingPoint(hit);
+		Ray rayToLight = lightSource.rayToLight(hitPoint);
+		Vec intensity = lightSource.intensity(hitPoint, rayToLight);
+		Vec V = ray.direction().neg().normalize();
+		Vec R_hat = Ops.reflect(rayToLight.direction(), hit.getNormalToSurface()).normalize();
+		double cosine_alpha = V.dot(R_hat);
+		Vec specular = Ks.mult(intensity).mult(Math.pow(cosine_alpha, n));
+		return specular;
 	}
 
 	private Hit closestHit(Ray ray){
@@ -230,7 +250,7 @@ public class Scene {
 		for (Intersectable surface : surfaces){
 			Hit hit = surface.intersect(ray);
 			if (hit != null) {
-				if (hit.t() < closestT ){ // Maybe need to add here && hit.t() > 0
+				if (hit.t() < closestT ){
 					closestHit = hit;
 					closestT = hit.t();
 				}

@@ -60,11 +60,13 @@ public class Spotlight extends PointLight {
 	 * @return A vector representing the light intensity (the r,g and b channels).
 	 */
 	public Vec intensity(Point hittingPoint, Ray rayToLight)  {
+		Vec intensity = new Vec(0.0, 0.0, 0.0);
+		Vec pointLightIntensity = super.intensity(hittingPoint, rayToLight);
 		Vec D = this.direction.normalize();
 		Vec V = rayToLight.direction().neg().normalize();
-		if (V.dot(D) < Ops.epsilon) {
-			return new Vec(0.0, 0.0, 0.0);
+		if (V.dot(D) >= Ops.epsilon) {
+			intensity = pointLightIntensity.mult(V.dot(D));
 		}
-		return super.intensity(hittingPoint, rayToLight).mult(V.dot(D));
+		return intensity;
 	}
 }

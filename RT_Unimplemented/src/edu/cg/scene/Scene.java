@@ -10,7 +10,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import edu.cg.Logger;
-import edu.cg.UnimplementedMethodException;
 import edu.cg.algebra.Ops;
 import edu.cg.algebra.Point;
 import edu.cg.algebra.Ray;
@@ -183,15 +182,6 @@ public class Scene {
 		});
 	}
 
-
-	//		if(recursionLevel <= maxRecursionLevel){
-				// calculate colorVector regularly as done below
-				// If reflection intensity != 0 ....
-				// starting point = hit point of the ray to the surface
-				// Ray ray = new Ray(starting point, direction of reflect direction / retract direction
-			//				// return colorVector.add(I_R.mult(calcColor(new ray, ++recursionLevel)))
-		// else return colorVector
-//		}
 	private Vec calcColor(Ray ray, int recursionLevel) {
 		Hit closest_hit = closestHit(ray);
 		if(closest_hit != null){
@@ -216,7 +206,12 @@ public class Scene {
 					colorVector = colorVector.add(calcColor(reflectionRay, recursionLevel).mult(I_Ref));
 				}
 				if(renderRefarctions){
-					// add here code for calc vector for refractions
+					double I_Ret = surface_hit.refractionIntensity();
+					double n1 = surface_hit.n1(closest_hit);
+					double n2 = surface_hit.n2(closest_hit);
+					Vec refracted = Ops.refract(ray.direction(), closest_hit.getNormalToSurface(), n1, n2);
+					Ray refractedRay = new Ray(ray.getHittingPoint(closest_hit), refracted.normalize());
+					colorVector = colorVector.add(calcColor(refractedRay, recursionLevel).mult(I_Ret));
 				}
 			}
 			return colorVector;
@@ -252,7 +247,7 @@ public class Scene {
 			if (hit != null) {
 				if (hit.t() < closestT ){
 					closestHit = hit;
-					closestT = hit.t();
+					closestT = closestHit.t();
 				}
 			}
 		}
@@ -261,7 +256,6 @@ public class Scene {
 
 	private boolean lightIsOccluded(Ray rayToLight, Light light){
 		for(Surface surface : surfaces){
-			//if(surface != hit_surface) - not sure if this is necessary????
 			if (light.isOccludedBy(surface, rayToLight)){
 				return true;
 			}

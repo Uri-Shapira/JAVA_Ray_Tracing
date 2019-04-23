@@ -94,16 +94,6 @@ public class Ops {
 	public static Vec reflect(Vec u, Vec normal) {
 		return add(u, mult(-2*dot(u, normal), normal));
 	}
-
-	public static double [] quadricRoot(double a, double b, double c) {
-		double [] ans = {Double.NEGATIVE_INFINITY,Double.NEGATIVE_INFINITY};
-		double determinant = b * b - 4 * a * c;
-		if (determinant>=0) {
-			ans[0] = (-b + Math.sqrt(determinant)) / (2 * a);
-			ans[1] = (-b - Math.sqrt(determinant)) / (2 * a);
-		}
-		return ans;
-	}
 	
 	public static Vec refract(Vec u, Vec normal, double n1, double n2) {
 		if(n1 == n2)

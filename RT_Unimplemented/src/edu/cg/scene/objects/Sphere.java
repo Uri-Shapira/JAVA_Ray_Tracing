@@ -39,33 +39,39 @@ public class Sphere extends Shape {
 
 	@Override
 	public Hit intersect(Ray ray) {
-		double b = Ops.dot(Ops.mult(2, ray.direction()), Ops.sub(ray.source(), this.center));
-		double c = Ops.normSqr(Ops.sub(ray.source(), this.center))- Math.pow(radius,2);
-		double t = getTvalue(ray, Ops.quadricRoot(1, b, c));
-		if (t >= Ops.infinity || t < Ops.epsilon) {
-			return null;
+		Hit hit = null;
+		double b = ray.direction().mult(2.0).dot((ray.source().sub(this.center)));
+		double c = ray.source().distSqr(this.center) - Math.pow(radius,2);
+		double t = Double.NEGATIVE_INFINITY;
+		Vec normalToSurface = null;
+		double[] t_values = quadraticEquation(1, b, c);
+		boolean isWithin = false;
+		if(t_values[1] != Double.NEGATIVE_INFINITY && t_values[0] != Double.NEGATIVE_INFINITY){
+			if(t_values[1] > Ops.epsilon){
+				t = t_values[0];
+				normalToSurface = ray.add(t_values[0]).sub(this.center).normalize();
+				if(t_values[0] < Ops.epsilon){
+					t = t_values[1];
+					normalToSurface = ray.add(t_values[0]).sub(this.center).normalize().neg();
+					isWithin = true;
+				}
+			}
+			if (t < Ops.infinity && t > Ops.epsilon) {
+				hit  = new Hit(t, normalToSurface);
+				hit.setIsWithin(isWithin);
+			}
 		}
-		Point intersectionPoint = Ops.add(ray.source(),Ops.mult(t, ray.direction()));
-		Vec normal = Ops.normalize(Ops.sub(intersectionPoint, center));
-		Hit ans = new Hit(t, normal);
-		return ans;
+		return hit;
 	}
 
-	private double getTvalue(Ray ray, double [] vals) {
-		double dis1 = Double.MAX_VALUE;
-		double dis2 = Double.MAX_VALUE;
-		if (vals[0] != Double.NEGATIVE_INFINITY) {
-			Point p1 = Ops.add(ray.source(), Ops.mult(vals[0], ray.direction()));
-			dis1 = Ops.dist(p1, ray.source());
+	private double [] quadraticEquation(double a, double b, double c) {
+		double [] values = {Double.NEGATIVE_INFINITY,Double.NEGATIVE_INFINITY};
+		double determinant = Math.pow(b,2) - (4 * a * c);
+		if (determinant >= 0) {
+			values[0] = (-b + Math.sqrt(determinant)) / (2 * a);
+			values[1] = (-b - Math.sqrt(determinant)) / (2 * a);
 		}
-		if (vals[1] != Double.NEGATIVE_INFINITY) {
-			Point p2 = Ops.add(ray.source(), Ops.mult(vals[1], ray.direction()));
-			dis2 = Ops.dist(p2, ray.source());
-		}
-		if (dis1 < dis2) {
-			return vals[0];
-		}else {
-			return vals[1];
-		}
+		return values;
 	}
+
 }

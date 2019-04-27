@@ -1,6 +1,4 @@
 package edu.cg.scene.camera;
-
-import edu.cg.UnimplementedMethodException;
 import edu.cg.algebra.Point;
 import edu.cg.algebra.Vec;
 import edu.cg.algebra.Ray;

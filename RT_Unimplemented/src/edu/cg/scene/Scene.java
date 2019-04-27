@@ -227,6 +227,7 @@ public class Scene {
 				Ray reflectionRay = new Ray(ray.getHittingPoint(closest_hit), reflected.normalize());
 				colorVector = colorVector.add(calcColor(reflectionRay, recursionLevel).mult(Kr));
 			}
+			// TODO: add refraction index
 			if(renderRefarctions){
 				double Kt = surface_hit.refractionIntensity();
 				double n1 = surface_hit.n1(closest_hit);
@@ -239,11 +240,6 @@ public class Scene {
 		}
 		return this.backgroundColor;
 	}
-
-	/**
-	 * TODO:
-	 * Add methods for calcReflectedRay and calcRefractedRay
-	 */
 
 	private Vec getDiffuse(Vec Kd, Hit hit, Light lightSource, Ray ray){
 		Point hitPoint = ray.getHittingPoint(hit);

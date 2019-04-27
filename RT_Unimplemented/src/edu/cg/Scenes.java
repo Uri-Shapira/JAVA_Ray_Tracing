@@ -153,5 +153,33 @@ public class Scenes {
 				.addSurface(sphereSurface3).addSurface(sphereSurface4).initName("scene5").initAntiAliasingFactor(1)
 				.initRenderRefarctions(true).initRenderReflections(true).initMaxRecursionLevel(6);
 	}
+	public static Scene scene6() {
+		Vec backgroundColor = new Vec(0.0,0.0,0.6);
+		Shape sphereShape1 = new Sphere(new Point(0.5, 0.5, 0.5), 0.5);
+		Material sphereMat1 = Material.getRandomMaterial();
+		Surface sphereSurface1 = new Surface(sphereShape1, sphereMat1);
+
+		Shape sphereShape2 = new Sphere(new Point(-0.5, 0.5, 0.5), 0.5);
+		Material sphereMat2 = Material.getRandomMaterial();
+		Surface sphereSurface2 = new Surface(sphereShape2, sphereMat2);
+
+		Shape sphereShape3 = new Sphere(new Point(0.5, -0.5, 0.5), 0.5);
+		Material sphereMat3 = Material.getRandomMaterial();
+		Surface sphereSurface3 = new Surface(sphereShape3, sphereMat3);
+
+		Shape sphereShape4 = new Sphere(new Point(-0.5, -0.5, 0.5), 0.5);
+		Material sphereMat4 = Material.getRandomMaterial();
+		Surface sphereSurface4 = new Surface(sphereShape4, sphereMat4);
+
+		Light dirLight = new DirectionalLight().initDirection(new Vec(0.0, 0.0, -1.0))
+				.initIntensity(new Vec(0.7));
+
+		return new Scene().initAmbient(new Vec(1.0)).initBackgroundColor(backgroundColor)
+				.initCamera(new Point(0.0, 0.0, 2.0), new Vec(0.0, 0.0 , -1.0),
+						new Vec(1.0, 1.0, 0.0), 1.0)
+				.addLightSource(dirLight).addSurface(sphereSurface1).addSurface(sphereSurface2)
+				.addSurface(sphereSurface3).addSurface(sphereSurface4).initName("scene6").initAntiAliasingFactor(1)
+				.initRenderRefarctions(true).initRenderReflections(true).initMaxRecursionLevel(6);
+	}
 
 }

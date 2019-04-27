@@ -1,6 +1,4 @@
 package edu.cg.scene.objects;
-
-import edu.cg.UnimplementedMethodException;
 import edu.cg.algebra.Hit;
 import edu.cg.algebra.Ops;
 import edu.cg.algebra.Point;
@@ -31,7 +29,7 @@ public class AxisAlignedBox extends Shape {
 		minPoint = new Point(-1.0, -1.0, -1.0);
 		maxPoint = new Point(1.0, 1.0, 1.0);
 	}
-	
+
 	/**
 	 * This methods fixes the boundary points minPoint and maxPoint so that the values are consistent.
 	 */
@@ -42,13 +40,13 @@ public class AxisAlignedBox extends Shape {
 		minPoint = new Point(min_x, min_y, min_z);
 		maxPoint = new Point(max_x, max_y, max_z);
 	}
-	
+
 	@Override
 	public String toString() {
 		String endl = System.lineSeparator();
 		return name + endl + "Min Point: " + minPoint + endl + "Max Point: " + maxPoint + endl;
 	}
-	
+
 	//Initializers
 	public AxisAlignedBox initMinPoint(Point minPoint) {
 		this.minPoint = minPoint;
@@ -64,17 +62,20 @@ public class AxisAlignedBox extends Shape {
 
 	@Override
 	public Hit intersect(Ray ray) {
-		double tNear = -1.0E8D;double tFar = 1.0E8D;
-		double[] rayP = ray.source().asArray();double[] rayD = ray.direction().asArray();
-		double[] minP = minPoint.asArray();double[] maxP = maxPoint.asArray();
+		double[] raySource = {ray.source().x, ray.source().y, ray.source().z};
+		double[] rayDirection = {ray.direction().x, ray.direction().y, ray.direction().z};
+		double[] minBoxPoint ={minPoint.x, minPoint.y, minPoint.z};
+		double[] maxBoxPoint = {maxPoint.x, maxPoint.y, maxPoint.z};
+		double tMin = 0.0;
+		double tMax = Ops.infinity;
 		for (int i = 0; i < 3; i++) {
-			if (Math.abs(rayD[i]) <= 1.0E-5D) {
-				if ((rayP[i] < minP[i]) || (rayP[i] > maxP[i])) {
+			if (Math.abs(rayDirection[i]) < Ops.epsilon) {
+				if ((raySource[i] < minBoxPoint[i]) || (raySource[i] > maxBoxPoint[i])) {
 					return null;
 				}
 			} else {
-				double t1 = find_t(rayD[i], rayP[i], minP[i]);
-				double t2 = find_t(rayD[i], rayP[i], maxP[i]);
+				double t1 = find_t(rayDirection[i], raySource[i], minBoxPoint[i]);
+				double t2 = find_t(rayDirection[i], raySource[i], maxBoxPoint[i]);
 				if (t1 > t2) {
 					double tmp = t1;
 					t1 = t2;
@@ -83,23 +84,23 @@ public class AxisAlignedBox extends Shape {
 				if ((Double.isNaN(t1)) || (Double.isNaN(t2))) {
 					return null;
 				}
-				if (t1 > tNear) {
-					tNear = t1;
+				if (t1 > tMin) {
+					tMin = t1;
 				}
-				if (t2 < tFar) {
-					tFar = t2;
+				if (t2 < tMax) {
+					tMax = t2;
 				}
-				if ((tNear > tFar) || (tFar < 1.0E-5D))
+				if ((tMin > tMax) || (tMax < 1.0E-5D))
 					return null;
 			}
 		}
-		double minT = tNear;
+		double minT = tMin;
 		boolean isWithin = false;
-		if (minT < 1.0E-5D) {
+		if (minT < Ops.epsilon) {
 			isWithin = true;
-			minT = tFar;
+			minT = tMax;
 		}
-		Vec norm = find_normal(ray.add(minT));
+		Vec norm = getNormalToSurface(ray, minT);
 		if (isWithin) {
 			norm = norm.neg();
 		}
@@ -107,36 +108,37 @@ public class AxisAlignedBox extends Shape {
 	}
 
 	private double find_t(double a, double b, double c) {
-		if ((Math.abs(a) < 1.0E-5D) && (Math.abs(b - c) > 1.0E-5D)) {
-			return 1.0E8D;
+		if ((Math.abs(a) < Ops.epsilon) && (Math.abs(b - c) > Ops.epsilon)) {
+			return Ops.infinity ;
 		}
-		if ((Math.abs(a) < 1.0E-5D) && (Math.abs(b - c) < 1.0E-5D))
-			return 0.0D;
+		if (((Math.abs(a) < Ops.epsilon) && (Math.abs(b - c) <Ops.epsilon))) {
+			return 0.0;
+		}
 		double t = (c - b) / a;
 		return t;
 	}
-
-	private Vec find_normal(Point hitPoint){
-		Vec normal = null;
-		if (Math.abs(hitPoint.z - minPoint.z) <= 1.0E-5D) {
-			return new Vec(0.0D, 0.0D, -1.0D);
+	private Vec getNormalToSurface(Ray ray, double t) {
+		Vec normalToSurface = null;
+		Point hitPoint = ray.add(t);
+		if (Math.abs(hitPoint.x - minPoint.x) < Ops.epsilon) {
+			normalToSurface = new Vec(-1.0, 0.0, 0.0);
 		}
-		if (Math.abs(hitPoint.z - maxPoint.z) <= 1.0E-5D) {
-			return new Vec(0.0D, 0.0D, 1.0D);
+		if (Math.abs(hitPoint.x - maxPoint.x) < Ops.epsilon) {
+			normalToSurface = new Vec(1.0, 0.0, 0.0);
 		}
-		if (Math.abs(hitPoint.y - minPoint.y) <= 1.0E-5D) {
-			return new Vec(0.0D, -1.0D, 0.0D);
+		if (Math.abs(hitPoint.y - maxPoint.y) < Ops.epsilon) {
+			normalToSurface = new Vec(0.0, 1.0, 0.0);
 		}
-		if (Math.abs(hitPoint.y - maxPoint.y) <= 1.0E-5D) {
-			return new Vec(0.0D, 1.0D, 0.0D);
+		if (Math.abs(hitPoint.y - minPoint.y) < Ops.epsilon) {
+			normalToSurface = new Vec(0.0, -1.0, 0.0);
 		}
-		if (Math.abs(hitPoint.x - minPoint.x) <= 1.0E-5D) {
-			return new Vec(-1.0D, 0.0D, 0.0D);
+		if (Math.abs(hitPoint.z - maxPoint.z) < Ops.epsilon) {
+			normalToSurface = new Vec(0.0, 0.0, 1.0);
 		}
-		if (Math.abs(hitPoint.x - maxPoint.x) <= 1.0E-5D) {
-			return new Vec(1.0D, 0.0D, 0.0D);
+		if (Math.abs(hitPoint.z - minPoint.z) < Ops.epsilon) {
+			normalToSurface = new Vec(0.0, 0.0, -1.0);
 		}
-		return null;
+		return normalToSurface;
 	}
-	
+
 }

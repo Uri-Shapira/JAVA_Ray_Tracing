@@ -1,7 +1,5 @@
 package edu.cg.algebra;
 
-//import ex3.UnimplementedMethodException;
-
 public class Ops {
 	public static final double epsilon = 1e-5;
 	public static final double infinity = 1e8;
@@ -55,6 +53,9 @@ public class Ops {
 	}
 	
 	public static Vec normalize(Vec v) {
+		if(norm(v) == 0){
+			return v;
+		}
 		return mult(1.0/norm(v), v);
 	}
 	

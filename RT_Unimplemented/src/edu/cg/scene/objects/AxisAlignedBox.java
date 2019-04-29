@@ -62,64 +62,110 @@ public class AxisAlignedBox extends Shape {
 
 	@Override
 	public Hit intersect(Ray ray) {
-		double[] raySource = {ray.source().x, ray.source().y, ray.source().z};
-		double[] rayDirection = {ray.direction().x, ray.direction().y, ray.direction().z};
-		double[] minBoxPoint ={minPoint.x, minPoint.y, minPoint.z};
-		double[] maxBoxPoint = {maxPoint.x, maxPoint.y, maxPoint.z};
-		double tMin = 0.0;
+		double tMin = -Ops.infinity;
 		double tMax = Ops.infinity;
-		for (int i = 0; i < 3; i++) {
-			if (Math.abs(rayDirection[i]) < Ops.epsilon) {
-				if ((raySource[i] < minBoxPoint[i]) || (raySource[i] > maxBoxPoint[i])) {
-					return null;
-				}
-			} else {
-				double t1 = find_t(rayDirection[i], raySource[i], minBoxPoint[i]);
-				double t2 = find_t(rayDirection[i], raySource[i], maxBoxPoint[i]);
-				if (t1 > t2) {
-					double tmp = t1;
-					t1 = t2;
-					t2 = tmp;
-				}
-				if ((Double.isNaN(t1)) || (Double.isNaN(t2))) {
-					return null;
-				}
-				if (t1 > tMin) {
-					tMin = t1;
-				}
-				if (t2 < tMax) {
-					tMax = t2;
-				}
-				if ((tMin > tMax) || (tMax < 1.0E-5D))
-					return null;
+		if (Math.abs(ray.direction().x) <= Ops.epsilon) {
+			if (ray.source().x < minPoint.x || ray.source().x > maxPoint.x){
+				return null;
 			}
 		}
-		double minT = tMin;
+		else{
+			double txMin = find_t(ray.direction().x, minPoint.x, ray.source().x);
+			if(Double.isNaN(txMin)){
+				return null;
+			}
+			double txMax = find_t(ray.direction().x, maxPoint.x, ray.source().x);
+			if(Double.isNaN(txMax)){
+				return null;
+			}
+			if (txMax < txMin) {
+				double tmp = txMax;
+				txMax = txMin;
+				txMin = tmp;
+			}
+			tMax = (txMax < tMax) ? txMax : tMax;
+			tMin = (txMin > tMin) ? txMin : tMin;
+			if(tMin > tMax || tMax < Ops.epsilon){
+				return null;
+			}
+		}
+		if (Math.abs(ray.direction().y) <= Ops.epsilon) {
+			if (ray.source().y < minPoint.y || ray.source().y > maxPoint.y) {
+				return null;
+			}
+		}
+		else {
+			double tyMin = find_t(ray.direction().y, minPoint.y, ray.source().y);
+			if(Double.isNaN(tyMin)){
+				return null;
+			}
+			double tyMax = find_t(ray.direction().y, maxPoint.y, ray.source().y);
+			if(Double.isNaN(tyMax)){
+				return null;
+			}
+			if (tyMax < tyMin) {
+				double tmp = tyMax;
+				tyMax = tyMin;
+				tyMin = tmp;
+			}
+			tMax = (tyMax < tMax) ? tyMax : tMax;
+			tMin = (tyMin > tMin) ? tyMin : tMin;
+			if(tMin > tMax || tMax < Ops.epsilon){
+				return null;
+			}
+		}
+		if (Math.abs(ray.direction().z) <= Ops.epsilon) {
+			if (ray.source().z < minPoint.z || ray.source().z > maxPoint.z) {
+				return null;
+			}
+		}
+		else {
+			double tzMin = find_t(ray.direction().z, minPoint.z, ray.source().z);
+			if(Double.isNaN(tzMin)){
+				return null;
+			}
+			double tzMax = find_t(ray.direction().z, maxPoint.z, ray.source().z);
+			if(Double.isNaN(tzMax)){
+				return null;
+			}
+			if (tzMax < tzMin) {
+				double tmp = tzMax;
+				tzMax = tzMin;
+				tzMin = tmp;
+			}
+			tMax = (tzMax < tMax) ? tzMax : tMax;
+			tMin = (tzMin > tMin) ? tzMin : tMin;
+			if(tMin > tMax || tMax < Ops.epsilon){
+				return null;
+			}
+		}
+		double t_value = tMin;
 		boolean isWithin = false;
-		if (minT < Ops.epsilon) {
+		if(tMin < Ops.epsilon){
 			isWithin = true;
-			minT = tMax;
+			t_value = tMax;
 		}
-		Vec norm = getNormalToSurface(ray, minT);
-		if (isWithin) {
-			norm = norm.neg();
+		Vec normal = calcNormal(ray.add(t_value));
+		if(isWithin){
+			normal = normal.neg();
 		}
-		return new Hit(minT, norm).setIsWithin(isWithin);
+		Hit hit = new Hit(t_value, normal).setIsWithin(isWithin);
+		return hit;
 	}
 
-	private double find_t(double a, double b, double c) {
-		if ((Math.abs(a) < Ops.epsilon) && (Math.abs(b - c) > Ops.epsilon)) {
+	private double find_t(double rayDirection, double boxExtreme, double raySource) {
+		if ((Math.abs(rayDirection) < Ops.epsilon) && (Math.abs(boxExtreme - raySource) > Ops.epsilon)) {
 			return Ops.infinity ;
 		}
-		if (((Math.abs(a) < Ops.epsilon) && (Math.abs(b - c) <Ops.epsilon))) {
+		if (((Math.abs(rayDirection) < Ops.epsilon) && (Math.abs(boxExtreme - raySource) <Ops.epsilon))) {
 			return 0.0;
 		}
-		double t = (c - b) / a;
+		double t = (boxExtreme - raySource) / rayDirection;
 		return t;
 	}
-	private Vec getNormalToSurface(Ray ray, double t) {
+
+	private Vec calcNormal(Point hitPoint) {
 		Vec normalToSurface = null;
-		Point hitPoint = ray.add(t);
 		if (Math.abs(hitPoint.x - minPoint.x) < Ops.epsilon) {
 			normalToSurface = new Vec(-1.0, 0.0, 0.0);
 		}

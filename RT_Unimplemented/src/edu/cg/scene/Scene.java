@@ -218,13 +218,13 @@ public class Scene {
 				}
 			}
 			recursionLevel++;
-			if (recursionLevel > maxRecursionLevel) {
+			if (recursionLevel >= maxRecursionLevel) {
 				return colorVector;
 			}
 			if(renderReflections){
 				double Kr = surface_hit.reflectionIntensity();
 				Vec reflected = Ops.reflect(ray.direction(), closest_hit.getNormalToSurface());
-				Ray reflectionRay = new Ray(ray.getHittingPoint(closest_hit), reflected.normalize());
+				Ray reflectionRay = new Ray(ray.getHittingPoint(closest_hit).add(ray.direction().mult(0.000000001)), reflected.normalize());
 				colorVector = colorVector.add(calcColor(reflectionRay, recursionLevel).mult(Kr));
 			}
 			// TODO: add refraction index
@@ -233,7 +233,8 @@ public class Scene {
 				double n1 = surface_hit.n1(closest_hit);
 				double n2 = surface_hit.n2(closest_hit);
 				Vec refracted = Ops.refract(ray.direction(), closest_hit.getNormalToSurface(), n1, n2);
-				Ray refractedRay = new Ray(ray.getHittingPoint(closest_hit), refracted.normalize());
+				Ray refractedRay = new Ray(ray.getHittingPoint(closest_hit).add(ray.direction().mult(0.000000001)), refracted.normalize());
+				System.out.println(refractedRay.source());
 				colorVector = colorVector.add(calcColor(refractedRay, recursionLevel).mult(Kt));
 			}
 			return colorVector;

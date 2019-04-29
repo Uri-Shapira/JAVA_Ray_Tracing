@@ -62,14 +62,10 @@ public class AxisAlignedBox extends Shape {
 
 	@Override
 	public Hit intersect(Ray ray) {
-		double tMin = -Ops.infinity;
+		double tMin = 0.0;
 		double tMax = Ops.infinity;
-		if (Math.abs(ray.direction().x) <= Ops.epsilon) {
-			if (ray.source().x < minPoint.x || ray.source().x > maxPoint.x){
-				return null;
-			}
-		}
-		else{
+		boolean isWithin = false;
+		if (Math.abs(ray.direction().x) > Ops.epsilon) {
 			double txMin = find_t(ray.direction().x, minPoint.x, ray.source().x);
 			if(Double.isNaN(txMin)){
 				return null;
@@ -89,12 +85,12 @@ public class AxisAlignedBox extends Shape {
 				return null;
 			}
 		}
-		if (Math.abs(ray.direction().y) <= Ops.epsilon) {
-			if (ray.source().y < minPoint.y || ray.source().y > maxPoint.y) {
+		else{
+			if (ray.source().x < minPoint.x || ray.source().x > maxPoint.x){
 				return null;
 			}
 		}
-		else {
+		if (Math.abs(ray.direction().y) > Ops.epsilon) {
 			double tyMin = find_t(ray.direction().y, minPoint.y, ray.source().y);
 			if(Double.isNaN(tyMin)){
 				return null;
@@ -114,12 +110,12 @@ public class AxisAlignedBox extends Shape {
 				return null;
 			}
 		}
-		if (Math.abs(ray.direction().z) <= Ops.epsilon) {
-			if (ray.source().z < minPoint.z || ray.source().z > maxPoint.z) {
+		else {
+			if (ray.source().y < minPoint.y || ray.source().y > maxPoint.y) {
 				return null;
 			}
 		}
-		else {
+		if (Math.abs(ray.direction().z) > Ops.epsilon) {
 			double tzMin = find_t(ray.direction().z, minPoint.z, ray.source().z);
 			if(Double.isNaN(tzMin)){
 				return null;
@@ -139,28 +135,31 @@ public class AxisAlignedBox extends Shape {
 				return null;
 			}
 		}
-		double t_value = tMin;
-		boolean isWithin = false;
+		else {
+			if (ray.source().z < minPoint.z || ray.source().z > maxPoint.z) {
+				return null;
+			}
+		}
+		Vec normal = calcNormal(ray.add(tMin));
+		Hit hit = new Hit(tMin, normal);
 		if(tMin < Ops.epsilon){
 			isWithin = true;
-			t_value = tMax;
+			normal = calcNormal(ray.add(tMax)).neg();
+			hit = new Hit(tMax, normal);
 		}
-		Vec normal = calcNormal(ray.add(t_value));
-		if(isWithin){
-			normal = normal.neg();
-		}
-		Hit hit = new Hit(t_value, normal).setIsWithin(isWithin);
-		return hit;
+		return hit.setIsWithin(isWithin);
 	}
 
 	private double find_t(double rayDirection, double boxExtreme, double raySource) {
-		if ((Math.abs(rayDirection) < Ops.epsilon) && (Math.abs(boxExtreme - raySource) > Ops.epsilon)) {
-			return Ops.infinity ;
+		double t = Ops.infinity;
+		if(Math.abs(rayDirection )> Ops.epsilon){
+			t = (boxExtreme - raySource) / rayDirection;
 		}
-		if (((Math.abs(rayDirection) < Ops.epsilon) && (Math.abs(boxExtreme - raySource) <Ops.epsilon))) {
-			return 0.0;
+		else{
+			if((Math.abs(boxExtreme - raySource) < Ops.epsilon)){
+				t = 0.0;
+			}
 		}
-		double t = (boxExtreme - raySource) / rayDirection;
 		return t;
 	}
 

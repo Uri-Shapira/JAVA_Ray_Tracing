@@ -229,7 +229,7 @@ public class Scene {
 				colorVector = colorVector.add(calcColor(reflectionRay, recursionLevel).mult(Kr));
 			}
 			// TODO: add refraction index
-			if(renderRefarctions){
+			if(renderRefarctions && surface_hit.isTransparent()){
 				double Kt = surface_hit.refractionIntensity();
 				double n1 = surface_hit.n1(closest_hit);
 				double n2 = surface_hit.n2(closest_hit);
